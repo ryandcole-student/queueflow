@@ -1,0 +1,13 @@
+node_modules
+build
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+.git
+.gitignore
+.DS_Store
+npm-debug.log*
+README.md
+IDEA.md

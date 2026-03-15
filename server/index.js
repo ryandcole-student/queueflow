@@ -1,13 +1,18 @@
 /**
  * server/index.js — Express Backend
  *
- * Install deps:
- *   npm install express cors bcryptjs jsonwebtoken better-sqlite3
- *
- * Run:
+ * Run (development):
  *   node server/index.js
  *
- * Then point src/api/index.js at http://localhost:4000/api
+ * Run (production):
+ *   NODE_ENV=production node server/index.js
+ *   The server will also serve the React build from ../build
+ *
+ * Environment variables:
+ *   PORT        - HTTP port (default: 4000)
+ *   JWT_SECRET  - Secret for signing JWTs (required in production)
+ *   CORS_ORIGIN - Allowed CORS origin (default: http://localhost:3000)
+ *   DB_PATH     - Path to SQLite database file (default: ./queueflow.db)
  */
 
 const express  = require('express');
@@ -15,14 +20,25 @@ const cors     = require('cors');
 const bcrypt   = require('bcryptjs');
 const jwt      = require('jsonwebtoken');
 const Database = require('better-sqlite3');
+const path     = require('path');
 
 const app = express();
-const db  = new Database('./queueflow.db');
+const DB_PATH    = process.env.DB_PATH || path.join(__dirname, 'queueflow.db');
+const db         = new Database(DB_PATH);
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
-const PORT = process.env.PORT || 4000;
+const PORT       = process.env.PORT || 4000;
+const IS_PROD    = process.env.NODE_ENV === 'production';
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
+
+if (IS_PROD && JWT_SECRET === 'change-me-in-production') {
+  console.warn(
+    'WARNING: JWT_SECRET is set to the insecure default value. ' +
+    'Set a strong, random JWT_SECRET environment variable before deploying.'
+  );
+}
 
 // ── DB Schema ──────────────────────────────────────────────────────────────
 db.exec(`
@@ -84,6 +100,11 @@ function requireAuth(req, res, next) {
 }
 
 // ── Routes ─────────────────────────────────────────────────────────────────
+
+// GET /api/health
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // POST /api/auth/login
 app.post('/api/auth/login', (req, res) => {
@@ -191,5 +212,15 @@ app.delete('/api/tickets/:id', requireAuth, (req, res) => {
   db.prepare('DELETE FROM tickets WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
+
+// ── Serve React build in production ───────────────────────────────────────
+if (IS_PROD) {
+  const buildDir = path.join(__dirname, '..', 'build');
+  app.use(express.static(buildDir));
+  // Catch-all: send React's index.html for any non-API route
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(buildDir, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => console.log(`QueueFlow API running on :${PORT}`));

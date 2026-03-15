@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Production build
+build/
+
+# SQLite databases (persistent data — keep out of source control)
+*.db
+*.db-shm
+*.db-wal
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+
+# macOS
+.DS_Store
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# OS-generated files
+Thumbs.db
