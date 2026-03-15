@@ -5,7 +5,7 @@
  * Replace each function body with an axios call to your server:
  *
  *   import axios from 'axios';
- *   const API = axios.create({ baseURL: 'http://localhost:4000/api' });
+ *   const API = axios.create({ baseURL: 'https://queueflow-1.onrender.com/api' });
  *
  *   export async function login(username, password) {
  *     const { data } = await API.post('/auth/login', { username, password });
@@ -16,7 +16,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: 'https://queueflow-1.onrender.com/api',
   headers: {
     get Authorization() {
       return `Bearer ${localStorage.getItem('qf_token')}`;

@@ -58,7 +58,7 @@ npm install express cors bcryptjs jsonwebtoken better-sqlite3
 node index.js
 ```
 
-The server runs on `http://localhost:4000`.
+The server runs on `https://queueflow-1.onrender.com`.
 
 ### Connecting Frontend → Backend
 
@@ -68,7 +68,7 @@ Open `src/api/index.js` and replace the mock functions with real axios calls:
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: 'https://queueflow-1.onrender.com/api',
   headers: {
     get Authorization() {
       return `Bearer ${localStorage.getItem('qf_token')}`;

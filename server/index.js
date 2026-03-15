@@ -7,7 +7,7 @@
  * Run:
  *   node server/index.js
  *
- * Then point src/api/index.js at http://localhost:4000/api
+ * Then point src/api/index.js at https://queueflow-1.onrender.com/api
  */
 
 const express  = require('express');
@@ -21,7 +21,7 @@ const db  = new Database('./queueflow.db');
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 const PORT = process.env.PORT || 4000;
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: 'https://queueflow-1.onrender.com' }));
 app.use(express.json());
 
 // ── DB Schema ──────────────────────────────────────────────────────────────

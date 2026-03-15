@@ -74,7 +74,7 @@ export function TicketCard({ ticket }) {
   });
 */
 
-const qrValue = `https://yourapp.com/queue/check/${ticket.number}`;
+const qrValue = `https://queueflow-1.onrender.com/tickets/${ticket.number}`;
   return (
     <div style={styles.wrapper}>
       <div style={styles.header}>QueueFlow</div>
