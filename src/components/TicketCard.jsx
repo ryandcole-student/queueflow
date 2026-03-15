@@ -65,14 +65,16 @@ export function TicketCard({ ticket }) {
 
   // QR payload — replace with your real ticket URL in production:
   // e.g. `https://yourapp.com/queue/check/${ticket.number}`
-  const qrValue = JSON.stringify({
+/*  const qrValue = JSON.stringify({
     ticket:  ticket.number,
     name:    ticket.name,
     service: ticket.service,
     time:    ticket.time,
     date:    ticket.date,
   });
+*/
 
+const qrValue = `https://yourapp.com/queue/check/${ticket.number}`;
   return (
     <div style={styles.wrapper}>
       <div style={styles.header}>QueueFlow</div>

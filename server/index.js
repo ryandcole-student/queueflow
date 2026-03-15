@@ -42,7 +42,8 @@ db.exec(`
     service     TEXT NOT NULL,
     status      TEXT NOT NULL DEFAULT 'waiting',
     issued_by   INTEGER REFERENCES users(id),
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    served_at   DATETIME NULL
   
   );
 `);
@@ -104,6 +105,58 @@ app.get('/api/tickets', requireAuth, (req, res) => {
   res.json(tickets);
 });
 
+// GET /api/ticket/:number
+app.get('/api/tickets/:number', (req, res) => {
+  const { number } = req.params;
+
+  try {
+
+    // 1. Get ticket
+    const ticket = db.prepare(`
+      SELECT *
+      FROM tickets
+      WHERE number = ?
+    `).get(number);
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // 2. Count tickets ahead in queue
+    const ahead = db.prepare(`
+      SELECT COUNT(*) AS count
+      FROM tickets
+      WHERE status = 'waiting'
+      AND created_at < ?
+    `).get(ticket.created_at).count+1;
+
+    // 3. Average service time in seconds
+    const avg = db.prepare(`
+      SELECT AVG(strftime('%s', served_at) - strftime('%s', created_at)) AS avg_seconds
+      FROM tickets
+      WHERE served_at IS NOT NULL
+    `).get();
+
+    const avgSeconds = avg.avg_seconds || 1;
+
+    // 4. Estimated wait
+    const estimatedWaitSeconds = ahead * avgSeconds;
+
+    res.json({
+      ticket,
+      queue_position: ahead + 1,
+      tickets_ahead: ahead,
+      avg_service_time_seconds: avgSeconds,
+      estimated_wait_seconds: estimatedWaitSeconds,
+      estimated_wait_minutes: estimatedWaitSeconds / 60
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // POST /api/tickets
 app.post('/api/tickets', requireAuth, (req, res) => {
   const { name, service, prefix } = req.body;
@@ -127,6 +180,9 @@ app.patch('/api/tickets/:id/status', requireAuth, (req, res) => {
   db.prepare('UPDATE tickets SET status = ? WHERE id = ?').run(status, req.params.id);
   const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(req.params.id);
   if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  if(status === 'done') {
+    db.prepare('UPDATE tickets SET served_at = CURRENT_TIMESTAMP WHERE id = ?').run(req.params.id);
+  }
   res.json(ticket);
 });
 

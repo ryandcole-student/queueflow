@@ -5,6 +5,8 @@
  * and the shell layout (Navbar + Sidebar).
  */
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 
 import { useAuth }    from './hooks/useAuth';
 import { useTickets } from './hooks/useTickets';
@@ -12,6 +14,7 @@ import { useToast, Toast } from './components/Toast';
 import { Navbar }  from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 
+import TicketView from "./pages/TicketView";
 import { LoginPage }     from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneratePage }  from './pages/GeneratePage';
@@ -33,6 +36,14 @@ export default function App() {
 
   /* ── Not logged in ─────────────────────────────── */
   if (!user) {
+   return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/ticket/:number" element={<TicketView />} />
+        <Route path="*" element={<LoginPage onLogin={login} />} />
+      </Routes>
+    </BrowserRouter>
+  );
     return (
       <>
         <LoginPage onLogin={login} />
