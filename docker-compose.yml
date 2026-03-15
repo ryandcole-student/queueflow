@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: queueflow:latest
+    container_name: queueflow
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # IMPORTANT: Override JWT_SECRET with a strong random value in production.
+      # You can set it in a .env file alongside this docker-compose.yml.
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4000}
+      DB_PATH: /app/data/queueflow.db
+    volumes:
+      # Persist the SQLite database across container restarts
+      - queueflow_data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  queueflow_data:
+    driver: local
